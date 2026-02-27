@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CollabNotes — App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: #e0dfd8;
+    --accent: #5147d4;
+    --accent-soft: rgba(81,71,212,0.1);
+    --text: #1a1a2e;
+    --muted: #7a7a9a;
+    --green: #1db87a;
+    --red: #e85555;
+    --yellow: #f0a500;
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 1.2rem;
+    gap: 1rem;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    margin-right: 0.5rem;
+  }
+
+  .topbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+  }
+
+  .doc-title-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    outline: none;
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+    min-width: 0;
+  }
+
+  .doc-title-input:hover { background: var(--surface2); }
+  .doc-title-input:focus { background: var(--surface2); }
+
+  .save-indicator {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+  }
+
+  .save-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .share-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.45rem 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    white-space: nowrap;
+  }
+
+  .share-btn:hover { background: #6157e0; transform: translateY(-1px); }
+
+  .avatar-row {
+    display: flex;
+    align-items: center;
+    gap: -4px;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: -6px;
+    transition: transform 0.2s;
+    cursor: default;
+  }
+
+  .avatar:first-child { margin-left: 0; }
+  .avatar:hover { transform: scale(1.15); z-index: 5; }
+
+  /* ─── MAIN LAYOUT ─── */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-section {
+    padding: 1rem 1rem 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .new-note-btn {
+    margin: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: calc(100% - 1.5rem);
+  }
+
+  .new-note-btn:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+  .note-list { flex: 1; overflow-y: auto; padding: 0.25rem 0.75rem; }
+
+  .note-item {
+    padding: 0.65rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 2px;
+    border: 1px solid transparent;
+  }
+
+  .note-item:hover { background: var(--surface2); }
+
+  .note-item.active {
+    background: var(--accent-soft);
+    border-color: rgba(81,71,212,0.2);
+  }
+
+  .note-item-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .note-item.active .note-item-title { color: var(--accent); }
+
+  .note-item-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .collab-badge {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 4px;
+  }
+
+  .sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .user-info .avatar { margin-left: 0; }
+
+  .user-name { font-size: 0.85rem; font-weight: 500; }
+  .user-role { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); }
+
+  /* ─── EDITOR AREA ─── */
+  .editor-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .editor-toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .tool-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    color: var(--text);
+  }
+
+  .tool-btn:hover { background: var(--surface2); }
+  .tool-btn.active { background: var(--accent-soft); color: var(--accent); }
+
+  .toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 0.25rem;
+  }
+
+  .font-select {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.25rem 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .editor-canvas {
+    flex: 1;
+    overflow-y: auto;
+    padding: 3rem 4rem;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .editor-canvas:focus { outline: none; }
+
+  @media(max-width: 700px) {
+    .editor-canvas { padding: 1.5rem 1.2rem; }
+    .sidebar { display: none; }
+  }
+
+  .editor-page {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 3rem;
+    min-height: 700px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    position: relative;
+  }
+
+  #editor {
+    outline: none;
+    font-size: 1rem;
+    line-height: 1.8;
+    min-height: 600px;
+    color: var(--text);
+  }
+
+  #editor h1 { font-family: 'Syne', sans-serif; font-size: 1.8rem; margin-bottom: 0.5rem; }
+  #editor h2 { font-family: 'Syne', sans-serif; font-size: 1.3rem; margin: 1.5rem 0 0.5rem; }
+  #editor p { margin-bottom: 0.75rem; }
+  #editor strong { font-weight: 600; }
+  #editor em { font-style: italic; }
+  #editor ul { margin: 0.5rem 0 0.5rem 1.5rem; }
+
+  /* Remote cursors */
+  .remote-cursor {
+    position: absolute;
+    width: 2px;
+    border-radius: 1px;
+    animation: cursor-blink 1s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .remote-cursor-label {
+    position: absolute;
+    top: -20px;
+    left: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #fff;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ─── RIGHT PANEL ─── */
+  .right-panel {
+    width: 240px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  @media(max-width:900px) { .right-panel { display: none; } }
+
+  .panel-section {
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .collab-user {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .collab-user .avatar { margin-left: 0; }
+
+  .online-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--green);
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .activity-item {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.82rem;
+  }
+
+  .activity-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    white-space: nowrap;
+    margin-top: 0.1rem;
+  }
+
+  .ws-panel {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ws-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .ws-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: ws-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes ws-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+
+  .ws-event {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    padding: 0.2rem 0;
+    border-left: 2px solid var(--border);
+    padding-left: 0.5rem;
+    margin-bottom: 0.3rem;
+    animation: slideIn 0.3s ease;
+  }
+
+  .ws-event .ev-type { color: var(--accent); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-6px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ─── SHARE MODAL ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 2rem;
+    width: 440px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    transform: translateY(12px);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal p { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.2rem; }
+
+  .link-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .link-input {
+    flex: 1;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--surface2);
+    outline: none;
+    min-width: 0;
+  }
+
+  .copy-btn {
+    padding: 0.6rem 1rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover { background: #6157e0; }
+
+  .modal-close {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--muted);
+    margin-top: -0.5rem;
+    transition: color 0.2s;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 100px;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 300;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ─── CONTEXT MENU ─── */
+  .ctx-menu {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 100;
+    min-width: 160px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .ctx-item {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .ctx-item:hover { background: var(--surface2); }
+  .ctx-item.danger { color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a href="index.html" style="text-decoration:none"><div class="logo">CollabNotes</div></a>
+  <div class="topbar-divider"></div>
+  <input type="text" class="doc-title-input" id="docTitle" value="Meeting Notes — Q1 Planning" />
+  <div class="save-indicator" id="saveStatus">
+    <div class="save-dot"></div>
+    Saved
+  </div>
+  <div class="topbar-divider"></div>
+  <!-- Online avatars -->
+  <div class="avatar-row">
+    <div class="avatar" style="background:#7c6af7;color:#fff" title="You (Alice)">A</div>
+    <div class="avatar" style="background:#6af7c4;color:#0a3a2a" title="Bob (online)">B</div>
+    <div class="avatar" style="background:#f7c66a;color:#3a2a00" title="Charlie (online)">C</div>
+  </div>
+  <button class="share-btn" onclick="openModal()">🔗 Share</button>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">My Notes</div>
+    <button class="new-note-btn" onclick="newNote()">＋ New Note</button>
+    <div class="note-list" id="noteList">
+      <div class="note-item active" onclick="switchNote(this, 'Meeting Notes — Q1 Planning', content1)">
+        <div class="note-item-title"><span class="collab-badge"></span>Meeting Notes — Q1 Planning</div>
+        <div class="note-item-meta">Just now · 2 collaborators</div>
+      </div>
+      <div class="note-item" onclick="switchNote(this, 'Project Roadmap 2025', content2)">
+        <div class="note-item-title">Project Roadmap 2025</div>
+        <div class="note-item-meta">Yesterday · 1 collaborator</div>
+      </div>
+      <div class="note-item" onclick="switchNote(this, 'Research: WebSocket vs SSE', content3)">
+        <div class="note-item-title">Research: WebSocket vs SSE</div>
+        <div class="note-item-meta">3 days ago · Only me</div>
+      </div>
+      <div class="note-item" onclick="switchNote(this, 'Personal Journal', content4)">
+        <div class="note-item-title">Personal Journal</div>
+        <div class="note-item-meta">Last week · Only me</div>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar" style="background:var(--accent);color:#fff">A</div>
+        <div>
+          <div class="user-name">Alice (You)</div>
+          <div class="user-role">Free Plan</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="editor-wrap">
+    <div class="editor-toolbar">
+      <select class="font-select" onchange="formatDoc('formatBlock', this.value)">
+        <option value="p">Paragraph</option>
+        <option value="h1">Heading 1</option>
+        <option value="h2">Heading 2</option>
+        <option value="h3">Heading 3</option>
+      </select>
+      <div class="toolbar-divider"></div>
+      <button class="tool-btn" onclick="formatDoc('bold')" title="Bold"><strong>B</strong></button>
+      <button class="tool-btn" onclick="formatDoc('italic')" title="Italic"><em>I</em></button>
+      <button class="tool-btn" onclick="formatDoc('underline')" title="Underline"><u>U</u></button>
+      <button class="tool-btn" onclick="formatDoc('strikeThrough')" title="Strikethrough"><s>S</s></button>
+      <div class="toolbar-divider"></div>
+      <button class="tool-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet list">•≡</button>
+      <button class="tool-btn" onclick="formatDoc('insertOrderedList')" title="Numbered list">1≡</button>
+      <div class="toolbar-divider"></div>
+      <button class="tool-btn" onclick="formatDoc('justifyLeft')" title="Align left">⬅</button>
+      <button class="tool-btn" onclick="formatDoc('justifyCenter')" title="Center">↔</button>
+      <button class="tool-btn" onclick="formatDoc('justifyRight')" title="Align right">➡</button>
+      <div class="toolbar-divider"></div>
+      <button class="tool-btn" onclick="formatDoc('undo')" title="Undo">↩</button>
+      <button class="tool-btn" onclick="formatDoc('redo')" title="Redo">↪</button>
+    </div>
+
+    <div class="editor-canvas">
+      <div class="editor-page">
+        <div id="editor" contenteditable="true" spellcheck="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- WS Status -->
+    <div class="ws-panel">
+      <div class="panel-label">WebSocket</div>
+      <div class="ws-status">
+        <div class="ws-dot"></div>
+        <span style="color:var(--green)">Connected</span>
+        <span style="color:var(--muted);margin-left:auto;font-size:0.65rem">note_8f3c</span>
+      </div>
+      <div id="wsLog"></div>
+    </div>
+
+    <!-- Collaborators -->
+    <div class="panel-section">
+      <div class="panel-label">Online Now</div>
+      <div class="collab-user">
+        <div class="avatar" style="background:var(--accent);color:#fff;width:24px;height:24px;font-size:0.6rem">A</div>
+        <span>Alice (You)</span>
+        <span class="online-badge"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block"></span></span>
+      </div>
+      <div class="collab-user">
+        <div class="avatar" style="background:#6af7c4;color:#0a3a2a;width:24px;height:24px;font-size:0.6rem">B</div>
+        <span>Bob</span>
+        <span class="online-badge"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block"></span>editing</span>
+      </div>
+      <div class="collab-user">
+        <div class="avatar" style="background:#f7c66a;color:#3a2a00;width:24px;height:24px;font-size:0.6rem">C</div>
+        <span>Charlie</span>
+        <span class="online-badge"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block"></span>viewing</span>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="panel-section">
+      <div class="panel-label">Recent Activity</div>
+      <div id="activityLog">
+        <div class="activity-item">
+          <div>
+            <div style="font-size:0.82rem"><strong>Bob</strong> edited</div>
+            <div class="activity-time">Just now</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div>
+            <div style="font-size:0.82rem"><strong>Alice</strong> joined</div>
+            <div class="activity-time">2 min ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div>
+            <div style="font-size:0.82rem"><strong>Charlie</strong> shared note</div>
+            <div class="activity-time">8 min ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back link -->
+    <div style="padding:1rem;margin-top:auto">
+      <a href="index.html" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:0.3rem;transition:color 0.2s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">← View Tech Stack</a>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>Share Note</h3>
+    <p>Anyone with the link can view and edit this note in real time.</p>
+    <div class="link-row">
+      <input type="text" class="link-input" value="https://collabnotes.app/note/8f3c2a" readonly />
+      <button class="copy-btn" onclick="copyLink()">Copy</button>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted)">
+      💡 Try opening this app in two browser tabs to simulate real-time collaboration!
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" onclick="formatDoc('bold')">✦ Bold selection</div>
+  <div class="ctx-item" onclick="formatDoc('italic')">✦ Italicize</div>
+  <div class="ctx-item" onclick="formatDoc('createLink', prompt('URL:'))">🔗 Add link</div>
+  <div class="ctx-item danger" onclick="formatDoc('delete')">✕ Delete</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONTENT TEMPLATES ───
+const content1 = `<h1>Meeting Notes — Q1 Planning</h1>
+<p><strong>Date:</strong> January 14, 2025 &nbsp;|&nbsp; <strong>Attendees:</strong> Alice, Bob, Charlie</p>
+<h2>Agenda</h2>
+<ul>
+  <li>Review Q4 performance metrics</li>
+  <li>Set goals for Q1 launch</li>
+  <li>Assign responsibilities</li>
+</ul>
+<h2>Key Decisions</h2>
+<p>The team agreed to <strong>launch v2.0</strong> by end of February. Bob will lead the backend migration while Alice handles the new onboarding flow.</p>
+<h2>Action Items</h2>
+<ul>
+  <li>Alice — redesign onboarding screens by Jan 20</li>
+  <li>Bob — migrate auth service by Jan 25</li>
+  <li>Charlie — prepare marketing materials</li>
+</ul>
+<p><em>Next meeting: January 21, 10:00 AM</em></p>`;
+
+const content2 = `<h1>Project Roadmap 2025</h1>
+<h2>Q1 — Foundation</h2>
+<p>Build core infrastructure, authentication, and real-time sync engine. Target: MVP ready by March.</p>
+<h2>Q2 — Growth</h2>
+<p>Add <strong>version history</strong>, comment threads, and mobile responsiveness. Begin beta testing with 100 users.</p>
+<h2>Q3 — Scale</h2>
+<p>Performance optimisation, team workspaces, and enterprise SSO integration.</p>`;
+
+const content3 = `<h1>Research: WebSocket vs Server-Sent Events</h1>
+<h2>WebSockets</h2>
+<p><strong>Full duplex</strong> — both server and client can send messages at any time. Ideal for <em>collaborative editing</em>, chat apps, and live gaming.</p>
+<h2>Server-Sent Events (SSE)</h2>
+<p>One-way — server pushes to client only. Simpler, works over HTTP/2. Good for dashboards, notifications, and live feeds.</p>
+<h2>Verdict</h2>
+<p>For a collaborative notes app, <strong>WebSockets win</strong> — we need the client to push changes too, not just receive them.</p>`;
+
+const content4 = `<h1>Personal Journal</h1>
+<p><em>January 10, 2025</em></p>
+<p>Started building the CollabNotes project today. The Socket.IO integration took longer than expected — debugging room namespaces is tricky. But once it clicked, seeing two tabs update in real time felt genuinely magical.</p>
+<p>Reminder: deploy to Render by end of the week so I can add the live link to my resume.</p>`;
+
+// ─── INIT EDITOR ───
+const editor = document.getElementById('editor');
+editor.innerHTML = content1;
+
+function formatDoc(cmd, val = null) {
+  document.execCommand(cmd, false, val);
+  editor.focus();
+  triggerSave();
+}
+
+// ─── SAVE SIMULATION ───
+let saveTimer;
+const saveStatus = document.getElementById('saveStatus');
+
+editor.addEventListener('input', () => triggerSave());
+document.getElementById('docTitle').addEventListener('input', () => triggerSave());
+
+function triggerSave() {
+  saveStatus.innerHTML = '<div class="save-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow)">Saving…</span>';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveStatus.innerHTML = '<div class="save-dot"></div>Saved';
+    logWsEvent('save', 'document saved to MongoDB');
+    addActivity('Alice', 'saved changes');
+  }, 1200);
+}
+
+// ─── NOTE SWITCHING ───
+function switchNote(el, title, content) {
+  document.querySelectorAll('.note-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('docTitle').value = title;
+  editor.innerHTML = content;
+  showToast('Note opened');
+}
+
+function newNote() {
+  const title = prompt('Note title:', 'Untitled Note');
+  if (!title) return;
+  const list = document.getElementById('noteList');
+  const item = document.createElement('div');
+  item.className = 'note-item active';
+  item.innerHTML = `<div class="note-item-title">${title}</div><div class="note-item-meta">Just now · Only me</div>`;
+  item.onclick = function() { switchNote(this, title, '<h1>' + title + '</h1><p>Start typing here…</p>'); };
+  document.querySelectorAll('.note-item').forEach(n => n.classList.remove('active'));
+  list.prepend(item);
+  document.getElementById('docTitle').value = title;
+  editor.innerHTML = '<h1>' + title + '</h1><p>Start typing here…</p>';
+  showToast('New note created');
+}
+
+// ─── WS LOG SIMULATION ───
+const wsLog = document.getElementById('wsLog');
+
+function logWsEvent(type, msg) {
+  const el = document.createElement('div');
+  el.className = 'ws-event';
+  el.innerHTML = `<span class="ev-type">${type}</span> → ${msg}`;
+  wsLog.prepend(el);
+  if (wsLog.children.length > 5) wsLog.removeChild(wsLog.lastChild);
+}
+
+// Simulate incoming events
+const fakeEvents = [
+  [2000, 'text-change', 'bob inserted "improve onboarding"'],
+  [5000, 'cursor-move', 'bob cursor at position 142'],
+  [9000, 'text-change', 'charlie inserted "deadline: Feb 28"'],
+  [13000, 'user-join', 'charlie joined room note_8f3c'],
+  [17000, 'text-change', 'bob deleted 3 chars at pos 88'],
+];
+
+fakeEvents.forEach(([delay, type, msg]) => {
+  setInterval(() => logWsEvent(type, msg), delay + 1000);
+});
+
+// ─── ACTIVITY LOG ───
+const actLog = document.getElementById('activityLog');
+
+function addActivity(user, action) {
+  const el = document.createElement('div');
+  el.className = 'activity-item';
+  el.innerHTML = `<div><div style="font-size:0.82rem"><strong>${user}</strong> ${action}</div><div class="activity-time">Just now</div></div>`;
+  actLog.prepend(el);
+  if (actLog.children.length > 5) actLog.removeChild(actLog.lastChild);
+}
+
+// ─── SHARE MODAL ───
+function openModal() {
+  document.getElementById('shareModal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('shareModal')) {
+    document.getElementById('shareModal').classList.remove('open');
+  }
+}
+
+function copyLink() {
+  navigator.clipboard.writeText('https://collabnotes.app/note/8f3c2a').catch(() => {});
+  showToast('Link copied to clipboard!');
+  closeModal();
+}
+
+// ─── TOAST ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── CONTEXT MENU ───
+editor.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  const menu = document.getElementById('ctxMenu');
+  menu.style.display = 'block';
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 180) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 160) + 'px';
+});
+
+document.addEventListener('click', () => {
+  document.getElementById('ctxMenu').style.display = 'none';
+});
+
+// ─── KEYBOARD SHORTCUTS ───
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === 'b') { e.preventDefault(); formatDoc('bold'); }
+    if (e.key === 'i') { e.preventDefault(); formatDoc('italic'); }
+    if (e.key === 'u') { e.preventDefault(); formatDoc('underline'); }
+    if (e.key === 's') { e.preventDefault(); triggerSave(); showToast('Saved ✓'); }
+    if (e.key === 'k') { e.preventDefault(); openModal(); }
+  }
+});
+
+// ─── Initial WS events ───
+setTimeout(() => logWsEvent('connect', 'joined room note_8f3c'), 500);
+setTimeout(() => logWsEvent('user-join', 'bob connected'), 1200);
+setTimeout(() => logWsEvent('user-join', 'charlie connected'), 1800);
+</script>
+</body>
+</html>

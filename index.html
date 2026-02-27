@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CollabNotes — Tech Stack & How It Works</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3e;
+    --accent: #7c6af7;
+    --accent2: #f7c66a;
+    --accent3: #6af7c4;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --danger: #f76a6a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo span { color: var(--accent2); }
+
+  nav a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+  }
+
+  nav a:hover { color: var(--text); }
+
+  nav a.cta {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  nav a.cta:hover {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,106,247,0.18) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse-glow 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.7; }
+  }
+
+  .hero-content { position: relative; z-index: 1; max-width: 750px; }
+
+  .hero-tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--accent3);
+    border: 1px solid rgba(106,247,196,0.3);
+    padding: 0.35rem 1rem;
+    border-radius: 100px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-btns {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.9s 0.3s ease both;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    padding: 0.75rem 1.8rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background: #9585f9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(124,106,247,0.35);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--muted);
+    transform: translateY(-2px);
+  }
+
+  /* ─── SECTIONS ─── */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 6rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+
+  .section-sub {
+    color: var(--muted);
+    max-width: 550px;
+    margin-bottom: 3rem;
+  }
+
+  /* ─── HOW IT WORKS ─── */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .flow-card::before {
+    content: attr(data-num);
+    position: absolute;
+    top: -0.5rem;
+    right: 1rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 5rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.03);
+    line-height: 1;
+    pointer-events: none;
+    transition: color 0.3s;
+  }
+
+  .flow-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+  }
+
+  .flow-card:hover::before { color: rgba(124,106,247,0.08); }
+
+  .flow-icon {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .flow-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .flow-card p { font-size: 0.9rem; color: var(--muted); }
+
+  /* ─── ARCHITECTURE DIAGRAM ─── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-top: 3rem;
+    overflow-x: auto;
+  }
+
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+
+  .arch-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 1.1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text);
+    white-space: nowrap;
+    transition: border-color 0.2s;
+  }
+
+  .arch-box:hover { border-color: var(--accent); }
+
+  .arch-box.frontend { border-color: rgba(124,106,247,0.5); color: var(--accent); }
+  .arch-box.backend { border-color: rgba(247,198,106,0.5); color: var(--accent2); }
+  .arch-box.realtime { border-color: rgba(106,247,196,0.5); color: var(--accent3); }
+  .arch-box.db { border-color: rgba(247,106,106,0.5); color: var(--danger); }
+
+  .arch-arrow {
+    color: var(--muted);
+    font-size: 1.2rem;
+    padding: 0 0.2rem;
+  }
+
+  .arch-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .arch-divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 1rem 0;
+  }
+
+  /* ─── TECH STACK CARDS ─── */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.8rem;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stack-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(124,106,247,0.05));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .stack-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(124,106,247,0.15);
+  }
+
+  .stack-card:hover::after { opacity: 1; }
+
+  .stack-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .stack-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .stack-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .stack-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    margin-top: 0.15rem;
+    display: inline-block;
+  }
+
+  .stack-card p { font-size: 0.88rem; color: var(--muted); margin-bottom: 1rem; }
+
+  .stack-why {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+
+  .stack-why strong {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Color themes for cards */
+  .c-purple .stack-icon { background: rgba(124,106,247,0.15); }
+  .c-yellow .stack-icon { background: rgba(247,198,106,0.15); }
+  .c-green .stack-icon { background: rgba(106,247,196,0.15); }
+  .c-red .stack-icon { background: rgba(247,106,106,0.15); }
+  .c-blue .stack-icon { background: rgba(106,180,247,0.15); }
+  .c-orange .stack-icon { background: rgba(247,146,106,0.15); }
+
+  .c-purple .stack-badge { background: rgba(124,106,247,0.15); color: var(--accent); }
+  .c-yellow .stack-badge { background: rgba(247,198,106,0.15); color: var(--accent2); }
+  .c-green .stack-badge { background: rgba(106,247,196,0.15); color: var(--accent3); }
+  .c-red .stack-badge { background: rgba(247,106,106,0.15); color: var(--danger); }
+  .c-blue .stack-badge { background: rgba(106,180,247,0.15); color: #6ab4f7; }
+  .c-orange .stack-badge { background: rgba(247,146,106,0.15); color: #f7926a; }
+
+  .c-purple .stack-why { border-color: var(--accent); }
+  .c-yellow .stack-why { border-color: var(--accent2); }
+  .c-green .stack-why { border-color: var(--accent3); }
+  .c-red .stack-why { border-color: var(--danger); }
+  .c-blue .stack-why { border-color: #6ab4f7; }
+  .c-orange .stack-why { border-color: #f7926a; }
+
+  .c-purple .stack-why strong { color: var(--accent); }
+  .c-yellow .stack-why strong { color: var(--accent2); }
+  .c-green .stack-why strong { color: var(--accent3); }
+  .c-red .stack-why strong { color: var(--danger); }
+  .c-blue .stack-why strong { color: #6ab4f7; }
+  .c-orange .stack-why strong { color: #f7926a; }
+
+  /* ─── REALTIME DEMO VISUALIZER ─── */
+  .demo-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 3rem;
+  }
+
+  .demo-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    color: var(--accent3);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .demo-title::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .users-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .user-bubble {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--surface2);
+    padding: 0.5rem 0.9rem;
+    border-radius: 100px;
+    font-size: 0.82rem;
+    border: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+
+  .user-bubble.active-user {
+    border-color: var(--accent3);
+  }
+
+  .user-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .doc-editor {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    min-height: 120px;
+    position: relative;
+  }
+
+  .doc-line { margin-bottom: 0.3rem; }
+  .highlight-a { background: rgba(124,106,247,0.25); border-radius: 2px; padding: 0 2px; }
+  .highlight-b { background: rgba(106,247,196,0.25); border-radius: 2px; padding: 0 2px; }
+  .highlight-c { background: rgba(247,198,106,0.25); border-radius: 2px; padding: 0 2px; }
+
+  .cursor-a { border-left: 2px solid var(--accent); display: inline-block; height: 1em; animation: cursor-blink 1s infinite; }
+  .cursor-b { border-left: 2px solid var(--accent3); display: inline-block; height: 1em; animation: cursor-blink 1.2s infinite; }
+
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .event-log {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+
+  .event-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0.25rem 0;
+    opacity: 0;
+    animation: fadeLog 0.4s ease forwards;
+  }
+
+  .event-item span { color: var(--accent3); }
+
+  @keyframes fadeLog {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ─── GITHUB DEPLOY SECTION ─── */
+  .deploy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .deploy-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.8rem;
+    position: relative;
+  }
+
+  .step-num {
+    position: absolute;
+    top: -1px;
+    left: 1.5rem;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 0 0 6px 6px;
+  }
+
+  .deploy-step h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    margin: 1rem 0 0.5rem;
+  }
+
+  .deploy-step p { font-size: 0.88rem; color: var(--muted); }
+
+  .code-snip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent3);
+    margin-top: 0.75rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* ─── FEATURE TAGS ─── */
+  .tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .tag:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    position: relative;
+    z-index: 1;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── DIVIDER ─── */
+  .section-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 auto;
+    max-width: 1100px;
+  }
+
+  @media (max-width: 600px) {
+    nav { padding: 1rem; }
+    .hero h1 { font-size: 2.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Collab<span>Notes</span></div>
+  <div style="display:flex;gap:0.5rem;align-items:center">
+    <a href="#stack">Stack</a>
+    <a href="#how">How It Works</a>
+    <a href="app.html" class="cta">→ Open App</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-tag">🚀 Fresher Portfolio Project #1</div>
+    <h1>Real-time<br><em>Collaborative</em><br>Notes App</h1>
+    <p>A full-stack application where multiple users edit the same document simultaneously — powered by WebSockets, React, Node.js & MongoDB.</p>
+    <div class="hero-btns">
+      <a href="app.html" class="btn btn-primary">✏️ Open App Demo</a>
+      <a href="#stack" class="btn btn-ghost">View Tech Stack ↓</a>
+    </div>
+    <div class="tags">
+      <span class="tag">WebSockets</span>
+      <span class="tag">React</span>
+      <span class="tag">Node.js</span>
+      <span class="tag">MongoDB</span>
+      <span class="tag">JWT Auth</span>
+      <span class="tag">REST API</span>
+      <span class="tag">Tailwind CSS</span>
+    </div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-label">Under the Hood</div>
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-sub">From the moment you type a character to when your collaborator sees it — here's the full journey.</p>
+
+  <div class="flow-grid fade-in">
+    <div class="flow-card" data-num="01">
+      <div class="flow-icon">🔐</div>
+      <h3>User Authentication</h3>
+      <p>Users sign up / log in via a REST API. The server issues a JWT token stored in the browser. Every request carries this token so the server knows who you are.</p>
+    </div>
+    <div class="flow-card" data-num="02">
+      <div class="flow-icon">📄</div>
+      <h3>Create / Open a Note</h3>
+      <p>Notes are stored in MongoDB. When you open a note, the client fetches its content via a GET request and renders it in the editor. A unique room ID is assigned per note.</p>
+    </div>
+    <div class="flow-card" data-num="03">
+      <div class="flow-icon">⚡</div>
+      <h3>WebSocket Connection</h3>
+      <p>The moment you open a note, your browser establishes a WebSocket connection to the server and joins a "room" specific to that note. This keeps a live, two-way channel open.</p>
+    </div>
+    <div class="flow-card" data-num="04">
+      <div class="flow-icon">✍️</div>
+      <h3>Typing & Broadcasting</h3>
+      <p>When you type, your client emits a <code style="color:var(--accent3);font-family:'DM Mono',monospace">text-change</code> event with the delta (just the change, not the whole doc) to the server. The server broadcasts it to all other users in the same room.</p>
+    </div>
+    <div class="flow-card" data-num="05">
+      <div class="flow-icon">🔄</div>
+      <h3>Operational Transform / CRDT</h3>
+      <p>If two users type at the same moment, conflicts are resolved via Quill's built-in delta model (a simple OT approach) — ensuring both changes merge correctly without overwriting each other.</p>
+    </div>
+    <div class="flow-card" data-num="06">
+      <div class="flow-icon">💾</div>
+      <h3>Auto-save to Database</h3>
+      <p>Every 2 seconds, the server debounces incoming changes and saves the latest document state to MongoDB. If the connection drops and reconnects, you always get the latest saved version.</p>
+    </div>
+  </div>
+
+  <!-- Architecture diagram -->
+  <div class="arch-diagram fade-in">
+    <div class="arch-label">SYSTEM ARCHITECTURE</div>
+
+    <div class="arch-row">
+      <div class="arch-box frontend">React Client (User A)</div>
+      <div class="arch-box frontend">React Client (User B)</div>
+      <div class="arch-box frontend">React Client (User C)</div>
+    </div>
+
+    <div class="arch-row">
+      <div class="arch-arrow">↕ HTTP (REST)</div>
+      <div class="arch-arrow">↕ WebSocket (Socket.IO)</div>
+    </div>
+
+    <div class="arch-row">
+      <div class="arch-box backend">Express.js REST API</div>
+      <div class="arch-box realtime">Socket.IO Server</div>
+    </div>
+
+    <div class="arch-row">
+      <div class="arch-arrow">↕</div>
+    </div>
+
+    <div class="arch-row">
+      <div class="arch-box db">MongoDB (Notes + Users)</div>
+    </div>
+
+    <hr class="arch-divider" />
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted)">
+      <span><span class="arch-box frontend" style="padding:0.2rem 0.6rem;border-radius:4px;font-size:0.65rem">■</span> Frontend</span>
+      <span><span class="arch-box backend" style="padding:0.2rem 0.6rem;border-radius:4px;font-size:0.65rem">■</span> REST Backend</span>
+      <span><span class="arch-box realtime" style="padding:0.2rem 0.6rem;border-radius:4px;font-size:0.65rem">■</span> Realtime</span>
+      <span><span class="arch-box db" style="padding:0.2rem 0.6rem;border-radius:4px;font-size:0.65rem">■</span> Database</span>
+    </div>
+  </div>
+
+  <!-- Live demo visualizer -->
+  <div class="demo-box fade-in">
+    <div class="demo-title">LIVE COLLABORATION SIMULATION</div>
+    <div class="users-row">
+      <div class="user-bubble active-user"><div class="user-dot" style="background:#7c6af7"></div>Alice (editing)</div>
+      <div class="user-bubble active-user"><div class="user-dot" style="background:#6af7c4"></div>Bob (viewing)</div>
+      <div class="user-bubble"><div class="user-dot" style="background:#f7c66a"></div>Charlie (offline)</div>
+    </div>
+    <div class="doc-editor" id="doc-preview">
+      <div class="doc-line">📝 <strong>Meeting Notes — Q1 Planning</strong></div>
+      <div class="doc-line" style="margin-top:0.8rem"><span class="highlight-a">Goals for this quarter: launch v2,</span><span class="cursor-a"></span></div>
+      <div class="doc-line"><span class="highlight-b">improve onboarding flow</span><span class="cursor-b"></span></div>
+      <div class="doc-line" style="color:var(--muted)">Assigned to: Alice, Bob</div>
+    </div>
+    <div class="event-log" id="event-log"></div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- TECH STACK -->
+<section id="stack">
+  <div class="section-label">Technology</div>
+  <h2 class="section-title">The Full Tech Stack</h2>
+  <p class="section-sub">Every tool chosen intentionally. Hover each card to see why it was picked.</p>
+
+  <div class="stack-grid">
+
+    <div class="stack-card c-purple fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">⚛️</div>
+        <div>
+          <h3>React.js</h3>
+          <span class="stack-badge">Frontend UI</span>
+        </div>
+      </div>
+      <p>Component-based JavaScript library for building the user interface. Handles routing, state management, and re-renders only what changes — keeping the editor fast even while receiving live updates.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        React's state-driven model means when a WebSocket event arrives with new text, only the affected editor component re-renders — not the whole page. Crucial for performance in a real-time app.
+      </div>
+    </div>
+
+    <div class="stack-card c-yellow fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">🟩</div>
+        <div>
+          <h3>Node.js + Express</h3>
+          <span class="stack-badge">Backend Server</span>
+        </div>
+      </div>
+      <p>JavaScript runtime that runs the server. Express adds a minimal web framework for defining REST API routes (login, signup, CRUD for notes). Node's event loop handles thousands of concurrent WebSocket connections without blocking.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        Since both frontend and backend use JavaScript, you share types and logic easily. Node's non-blocking I/O is perfect for real-time apps with many simultaneous connections.
+      </div>
+    </div>
+
+    <div class="stack-card c-green fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">🔌</div>
+        <div>
+          <h3>Socket.IO</h3>
+          <span class="stack-badge">Real-time Engine</span>
+        </div>
+      </div>
+      <p>A library that wraps WebSockets (with fallback to HTTP long-polling). Provides rooms, namespaces, and event-based communication. When Alice types, her delta is emitted to a room — only users in that room receive it.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        Raw WebSockets need manual reconnection logic, rooms, and fallbacks. Socket.IO handles all that out of the box — letting you focus on the app logic rather than protocol internals.
+      </div>
+    </div>
+
+    <div class="stack-card c-red fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">🍃</div>
+        <div>
+          <h3>MongoDB + Mongoose</h3>
+          <span class="stack-badge">Database</span>
+        </div>
+      </div>
+      <p>NoSQL document database. Notes are stored as JSON documents — they don't have a rigid schema, so adding fields like "tags" or "version history" later is trivial. Mongoose provides schema validation and query helpers.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        Notes are naturally document-shaped. A note is just a JSON object with content, owner, collaborators, timestamps. MongoDB stores this natively — no complex joins needed.
+      </div>
+    </div>
+
+    <div class="stack-card c-blue fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">🔑</div>
+        <div>
+          <h3>JWT Authentication</h3>
+          <span class="stack-badge">Security</span>
+        </div>
+      </div>
+      <p>JSON Web Tokens are signed, stateless tokens issued on login. Stored in the browser (HttpOnly cookie or localStorage), they are sent with every API request. The server verifies the signature without needing a database lookup for every request.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        JWTs are stateless — no server-side session store needed. This makes your backend horizontally scalable. It's also industry-standard — every job description mentions JWT.
+      </div>
+    </div>
+
+    <div class="stack-card c-orange fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">📝</div>
+        <div>
+          <h3>Quill.js Editor</h3>
+          <span class="stack-badge">Rich Text</span>
+        </div>
+      </div>
+      <p>An open-source rich text editor that represents document content as "Deltas" — a JSON-based diff format. Instead of sending the whole document on each change, you send just the delta (e.g., "insert 'h' at position 42"). This is the foundation of real-time sync.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        Quill's Delta format is tailor-made for collaboration. Deltas are compact, composable, and conflict-friendly. They integrate directly with Socket.IO events — this is the secret sauce of the real-time sync.
+      </div>
+    </div>
+
+    <div class="stack-card c-purple fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">🎨</div>
+        <div>
+          <h3>Tailwind CSS</h3>
+          <span class="stack-badge">Styling</span>
+        </div>
+      </div>
+      <p>Utility-first CSS framework. Instead of writing custom CSS classes, you compose styles directly in JSX using utility classes like <code style="font-family:'DM Mono',monospace;color:var(--accent)">flex gap-4 rounded-lg</code>. Speeds up UI development dramatically.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        Recruiters notice polished UIs. Tailwind lets a solo developer produce professional-looking interfaces quickly. It's also the most in-demand CSS framework in job postings right now.
+      </div>
+    </div>
+
+    <div class="stack-card c-yellow fade-in">
+      <div class="stack-header">
+        <div class="stack-icon">☁️</div>
+        <div>
+          <h3>GitHub Pages + Render</h3>
+          <span class="stack-badge">Deployment</span>
+        </div>
+      </div>
+      <p>GitHub Pages hosts the static React frontend for free. Render.com hosts the Node.js backend (also free tier). MongoDB Atlas provides a free cloud database. Combined, your full-stack app is live at zero cost.</p>
+      <div class="stack-why">
+        <strong>WHY IT MATTERS</strong>
+        A live link in your resume is 10x more impressive than a GitHub repo. Recruiters can click it and immediately use your project. This stack gets you deployed for free in under 30 minutes.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- DEPLOY GUIDE -->
+<section id="deploy">
+  <div class="section-label">Free Hosting</div>
+  <h2 class="section-title">Deploy to GitHub Pages</h2>
+  <p class="section-sub">Get a live shareable link for your resume in 4 steps. Frontend on GitHub Pages, backend on Render, database on MongoDB Atlas — all free.</p>
+
+  <div class="deploy-grid fade-in">
+    <div class="deploy-step">
+      <div class="step-num">01</div>
+      <h3>Set Up GitHub Repo</h3>
+      <p>Create a new repository, push your code. Name the repo <code style="font-family:'DM Mono',monospace;color:var(--accent3)">collab-notes</code> or anything you like.</p>
+      <div class="code-snip">git init && git push origin main</div>
+    </div>
+    <div class="deploy-step">
+      <div class="step-num">02</div>
+      <h3>Build & Deploy Frontend</h3>
+      <p>In your React app, run the build command. Then use <code style="font-family:'DM Mono',monospace;color:var(--accent3)">gh-pages</code> package to push the build folder to the <code style="font-family:'DM Mono',monospace;color:var(--accent3)">gh-pages</code> branch.</p>
+      <div class="code-snip">npm run build && npm run deploy</div>
+    </div>
+    <div class="deploy-step">
+      <div class="step-num">03</div>
+      <h3>Deploy Backend on Render</h3>
+      <p>Sign up at render.com → New Web Service → connect your GitHub repo → set build and start commands. Render auto-deploys on every push.</p>
+      <div class="code-snip">node server.js</div>
+    </div>
+    <div class="deploy-step">
+      <div class="step-num">04</div>
+      <h3>MongoDB Atlas (Free DB)</h3>
+      <p>Create a free M0 cluster on atlas.mongodb.com. Copy the connection string and add it as an environment variable on Render.</p>
+      <div class="code-snip">MONGO_URI=mongodb+srv://...</div>
+    </div>
+  </div>
+
+  <div style="margin-top:2.5rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;max-width:640px" class="fade-in">
+    <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--accent2);letter-spacing:0.1em;margin-bottom:1rem">PRO TIP FOR YOUR RESUME</div>
+    <p style="font-size:0.9rem;color:var(--muted)">Add this line under the project: <em style="color:var(--text)">"Live at [your-github-username].github.io/collab-notes — try editing simultaneously in two browser tabs."</em> That single instruction shows recruiters exactly how to test your real-time feature in 5 seconds.</p>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CTA -->
+<section style="text-align:center;padding:5rem 2rem">
+  <h2 class="section-title fade-in" style="margin:0 auto 1rem">Ready to build it?</h2>
+  <p class="fade-in" style="color:var(--muted);margin-bottom:2rem">Check out the app itself, then come back here to understand every piece.</p>
+  <a href="app.html" class="btn btn-primary fade-in">✏️ Open the App →</a>
+</section>
+
+<footer>
+  Built for recruiter-ready portfolios &nbsp;·&nbsp; <a href="app.html">Open App</a> &nbsp;·&nbsp; Stack: React · Node.js · Socket.IO · MongoDB
+</footer>
+
+<script>
+// Scroll animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Event log simulation
+const events = [
+  { msg: '<span>alice</span> joined room note_8f3c', delay: 1000 },
+  { msg: '<span>bob</span> joined room note_8f3c', delay: 2500 },
+  { msg: 'text-change emitted → delta: {insert: "launch v2,"}', delay: 4000 },
+  { msg: 'broadcast to 1 other client in room', delay: 4200 },
+  { msg: '<span>bob</span> received delta — applying to editor', delay: 4400 },
+  { msg: 'auto-save triggered → document saved to MongoDB', delay: 6000 },
+  { msg: 'text-change emitted → delta: {insert: "improve onboarding"}', delay: 8000 },
+  { msg: 'broadcast to 1 other client in room', delay: 8200 },
+];
+
+const log = document.getElementById('event-log');
+events.forEach(ev => {
+  setTimeout(() => {
+    const item = document.createElement('div');
+    item.className = 'event-item';
+    item.innerHTML = `<span style="color:var(--muted)">›</span> ${ev.msg}`;
+    log.appendChild(item);
+    if (log.children.length > 6) log.removeChild(log.firstChild);
+  }, ev.delay);
+});
+
+// Restart loop
+setInterval(() => {
+  log.innerHTML = '';
+  events.forEach(ev => {
+    setTimeout(() => {
+      const item = document.createElement('div');
+      item.className = 'event-item';
+      item.innerHTML = `<span style="color:var(--muted)">›</span> ${ev.msg}`;
+      log.appendChild(item);
+      if (log.children.length > 6) log.removeChild(log.firstChild);
+    }, ev.delay);
+  });
+}, 12000);
+</script>
+</body>
+</html>
