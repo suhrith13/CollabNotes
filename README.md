@@ -2,7 +2,7 @@
 
 Use this link to access the webiste -  https://suhrith13.github.io/CollabNotes/app.html
 
-
+Use this link to know how the project works and what Tech Stack has been used   - https://suhrith13.github.io/CollabNotes/
 
 
 ## 📁 File Structure (This Portfolio Demo)
